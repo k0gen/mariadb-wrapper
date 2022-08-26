@@ -1,0 +1,82 @@
+id: mariadb 
+title: "MariaDB"
+version: 10.6.9
+release-notes: "Initial release for EmbassyOS v0.3.1"
+license: gpl
+wrapper-repo: "https://github.com/Start9Labs/mariadb-wrapper"
+upstream-repo: "https://github.com/yobasystems/alpine-mariadb"
+support-site: "https://docs.start9.com/"
+marketing-site: "https://mariadb.com/"
+build: ["make"]
+description:
+  short: MariaDB - The open source relational database
+  long: |
+    MariaDB server is a community developed fork of MySQL server. Started by core members of the original MySQL team, MariaDB actively works with outside developers to deliver the most featureful, stable, and sanely licensed open SQL server in the industry.
+assets:
+  license: LICENSE
+  icon: icon.png
+  instructions: instructions.md
+  docker-images: image.tar
+main:
+  type: docker
+  image: main
+  entrypoint: "docker_entrypoint.sh"
+  args: []
+  mounts:
+    main: /var/lib/mysql
+health-checks: {}
+config: ~
+properties:
+  type: script
+volumes:
+  main:
+    type: data
+interfaces:
+  main:
+    name: Network Interface
+    description: Specifies the interface to listen on for connections.
+    lan-config:
+      3306:
+        ssl: true
+        internal: 3306
+    ui: false
+    protocols:
+      - tcp
+      - http
+dependencies: {}
+backup:
+  create:
+    type: docker
+    image: compat
+    system: true 
+    entrypoint: compat 
+    args: 
+      - duplicity
+      - create
+      - /mnt/backup
+      - /root/data
+    mounts:
+      BACKUP: "/mnt/backup" 
+      main: "/root/data"
+  restore:
+    type: docker
+    image: compat
+    system: true
+    entrypoint: compat
+    args:
+      - duplicity
+      - restore
+      - /root/data
+      - /mnt/backup
+    mounts:
+      BACKUP: "/mnt/backup"
+      main: "/root/data"
+migrations:
+  from:
+    "*":
+      type: script
+      args: ["from"]
+  to:
+    "*":
+      type: script
+      args: ["to"]
